@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "feature_dim": 256,
+  "worlds": [
+    {
+      "id": "codigo",
+      "label": "Código",
+      "priority": 10,
+      "examples": [
+        "escribe una función en Python",
+        "tengo un bug en Rust",
+        "revisa este código",
+        "compila el proyecto"
+      ],
+      "experts_by_layer": [[0]]
+    },
+    {
+      "id": "cocina",
+      "label": "Cocina",
+      "priority": 4,
+      "examples": [
+        "receta de paella",
+        "hornea el pan",
+        "ingredientes de la tortilla",
+        "sofríe la cebolla"
+      ],
+      "experts_by_layer": [[1]]
+    }
+  ]
+}

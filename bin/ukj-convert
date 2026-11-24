@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Wrapper sin instalación: usa el paquete de converter/ directamente.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export PYTHONPATH="$ROOT/converter${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 -m ukj_convert.cli "$@"

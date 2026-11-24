@@ -1,0 +1,9 @@
+model/
+out/
+rust/target/
+__pycache__/
+*.pyc
+.venv/
+site/
+investigacion/
+docs/investigacion/

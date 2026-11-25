@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-25T07:33:53.776657+00:00",
+  "generated_at": "2026-11-25T08:28:24.171484+00:00",
   "gguf": "model/olmoe-q2_k.gguf",
   "reference": "out/olmoe-q2_k-p1_p.ukj",
   "reference_payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
@@ -13,7 +13,7 @@
       "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
       "matches_reference": true,
       "verified": true,
-      "seconds": 52.0
+      "seconds": 16.2
     },
     {
       "density": "p2_p",
@@ -24,7 +24,7 @@
       "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
       "matches_reference": true,
       "verified": true,
-      "seconds": 51.0
+      "seconds": 12.8
     },
     {
       "density": "p3_p",
@@ -35,7 +35,7 @@
       "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
       "matches_reference": true,
       "verified": true,
-      "seconds": 33.4
+      "seconds": 10.6
     },
     {
       "density": "p4_p",
@@ -46,7 +46,7 @@
       "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
       "matches_reference": true,
       "verified": true,
-      "seconds": 32.7
+      "seconds": 10.7
     },
     {
       "density": "p5_p",
@@ -57,7 +57,7 @@
       "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
       "matches_reference": true,
       "verified": true,
-      "seconds": 28.9
+      "seconds": 10.5
     },
     {
       "density": "p6_p",
@@ -68,7 +68,7 @@
       "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
       "matches_reference": true,
       "verified": true,
-      "seconds": 30.0
+      "seconds": 10.5
     },
     {
       "density": "p7_p",
@@ -79,7 +79,7 @@
       "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
       "matches_reference": true,
       "verified": true,
-      "seconds": 28.8
+      "seconds": 10.3
     },
     {
       "density": "p8_p",
@@ -90,7 +90,7 @@
       "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
       "matches_reference": true,
       "verified": true,
-      "seconds": 29.7
+      "seconds": 10.6
     }
   ],
   "all_match": true

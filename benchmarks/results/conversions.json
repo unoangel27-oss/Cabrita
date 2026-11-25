@@ -1,0 +1,97 @@
+{
+  "generated_at": "2026-11-25T07:33:53.776657+00:00",
+  "gguf": "model/olmoe-q2_k.gguf",
+  "reference": "out/olmoe-q2_k-p1_p.ukj",
+  "reference_payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
+  "rows": [
+    {
+      "density": "p1_p",
+      "file_bytes": 2562220570,
+      "payload_bytes": 2560980992,
+      "tensors": 195,
+      "declared_density": "p1_p",
+      "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
+      "matches_reference": true,
+      "verified": true,
+      "seconds": 52.0
+    },
+    {
+      "density": "p2_p",
+      "file_bytes": 2562236261,
+      "payload_bytes": 2560980992,
+      "tensors": 195,
+      "declared_density": "p2_p",
+      "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
+      "matches_reference": true,
+      "verified": true,
+      "seconds": 51.0
+    },
+    {
+      "density": "p3_p",
+      "file_bytes": 2562251808,
+      "payload_bytes": 2560980992,
+      "tensors": 195,
+      "declared_density": "p3_p",
+      "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
+      "matches_reference": true,
+      "verified": true,
+      "seconds": 33.4
+    },
+    {
+      "density": "p4_p",
+      "file_bytes": 2562267542,
+      "payload_bytes": 2560980992,
+      "tensors": 195,
+      "declared_density": "p4_p",
+      "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
+      "matches_reference": true,
+      "verified": true,
+      "seconds": 32.7
+    },
+    {
+      "density": "p5_p",
+      "file_bytes": 2562283024,
+      "payload_bytes": 2560980992,
+      "tensors": 195,
+      "declared_density": "p5_p",
+      "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
+      "matches_reference": true,
+      "verified": true,
+      "seconds": 28.9
+    },
+    {
+      "density": "p6_p",
+      "file_bytes": 2562298476,
+      "payload_bytes": 2560980992,
+      "tensors": 195,
+      "declared_density": "p6_p",
+      "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
+      "matches_reference": true,
+      "verified": true,
+      "seconds": 30.0
+    },
+    {
+      "density": "p7_p",
+      "file_bytes": 2562313731,
+      "payload_bytes": 2560980992,
+      "tensors": 195,
+      "declared_density": "p7_p",
+      "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
+      "matches_reference": true,
+      "verified": true,
+      "seconds": 28.8
+    },
+    {
+      "density": "p8_p",
+      "file_bytes": 2562329323,
+      "payload_bytes": 2560980992,
+      "tensors": 195,
+      "declared_density": "p8_p",
+      "payload_sha256": "25e12a6e3193ca68e56c94e551c580284c476716dc88bb5bc502b595e0acee02",
+      "matches_reference": true,
+      "verified": true,
+      "seconds": 29.7
+    }
+  ],
+  "all_match": true
+}

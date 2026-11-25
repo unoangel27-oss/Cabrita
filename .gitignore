@@ -5,5 +5,9 @@ __pycache__/
 *.pyc
 .venv/
 site/
+dist/
 investigacion/
 docs/investigacion/
+# big model files (the tiny test fixture stays tracked)
+*.gguf
+!rust/tests/fixtures/tiny.gguf

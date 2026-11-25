@@ -1,0 +1,67 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: System dependencies
+        run: sudo apt-get update && sudo apt-get install -y libvulkan-dev libssl-dev
+      - name: Tests
+        working-directory: rust
+        run: cargo test
+      - name: AppImage
+        run: bash scripts/package_linux.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cabrita-linux
+          path: dist/*.AppImage
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Tests
+        working-directory: rust
+        run: cargo test
+      - name: Package
+        shell: pwsh
+        run: ./scripts/package_windows.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cabrita-windows
+          path: dist/cabrita.exe
+          if-no-files-found: error
+
+  publish:
+    needs: [linux, windows]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: cabrita-linux
+          path: dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: cabrita-windows
+          path: dist
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.AppImage
+            dist/cabrita.exe
+          fail_on_unmatched_files: true
+          generate_release_notes: true

@@ -1,0 +1,81 @@
+{
+  "generated_at": "2026-11-25T07:50:38.199203+00:00",
+  "prompts": [
+    "Explain what a transformer is in one paragraph.",
+    "Write a Python function that adds two numbers.",
+    "Summarize the main idea of a mixture of experts model."
+  ],
+  "tokens": 16,
+  "ctx": 512,
+  "backend": "cpu",
+  "rows": [
+    {
+      "model": "out/olmoe-q2_k-p1_p.ukj",
+      "q": "q2_k",
+      "density": "p1_p",
+      "bytes": 2562220548,
+      "tokens_per_s": 2.7175870366522674,
+      "ttft_ms": 8301.247551666667,
+      "latency_ms": 14206.741735333333,
+      "rss_mb": 2124.32421875,
+      "peak_rss_mb": 2124.32421875,
+      "prompt_tokens": 21.666666666666668,
+      "generated_tokens": 16,
+      "perplexity": 20.869706952017896,
+      "perplexity_tokens": 160,
+      "qa_accuracy": 0.800000011920929,
+      "qa_total": 10
+    },
+    {
+      "model": "out/olmoe-q2_k-p3_p.ukj",
+      "q": "q2_k",
+      "density": "p3_p",
+      "bytes": 2562251786,
+      "tokens_per_s": 2.673004932575247,
+      "ttft_ms": 9900.070665333335,
+      "latency_ms": 15918.262210666666,
+      "rss_mb": 2124.94921875,
+      "peak_rss_mb": 2124.94921875,
+      "prompt_tokens": 21.666666666666668,
+      "generated_tokens": 16,
+      "perplexity": 20.869706952017896,
+      "perplexity_tokens": 160,
+      "qa_accuracy": 0.800000011920929,
+      "qa_total": 10
+    },
+    {
+      "model": "out/olmoe-q2_k-p5_p.ukj",
+      "q": "q2_k",
+      "density": "p5_p",
+      "bytes": 2562283002,
+      "tokens_per_s": 2.9268316687973703,
+      "ttft_ms": 7704.396603666666,
+      "latency_ms": 13184.844358,
+      "rss_mb": 2123.8138020833335,
+      "peak_rss_mb": 2123.8138020833335,
+      "prompt_tokens": 21.666666666666668,
+      "generated_tokens": 16,
+      "perplexity": 20.869706952017896,
+      "perplexity_tokens": 160,
+      "qa_accuracy": 0.800000011920929,
+      "qa_total": 10
+    },
+    {
+      "model": "out/olmoe-q2_k-p8_p.ukj",
+      "q": "q2_k",
+      "density": "p8_p",
+      "bytes": 2562329332,
+      "tokens_per_s": 2.614328467754734,
+      "ttft_ms": 8238.227324,
+      "latency_ms": 14362.384240000001,
+      "rss_mb": 2124.4153645833335,
+      "peak_rss_mb": 2124.4153645833335,
+      "prompt_tokens": 21.666666666666668,
+      "generated_tokens": 16,
+      "perplexity": 20.869706952017896,
+      "perplexity_tokens": 160,
+      "qa_accuracy": 0.800000011920929,
+      "qa_total": 10
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{"id":"capital","prompt":"What is the capital of France?","choices":["Paris","London","Madrid"],"answer":"Paris"}
+{"id":"spider","prompt":"How many legs does a spider have?","choices":["Eight","Six","Four"],"answer":"Eight"}
+{"id":"sum","prompt":"What is two plus two?","choices":["Four","Five","Three"],"answer":"Four"}
+{"id":"planet","prompt":"Which planet is known as the Red Planet?","choices":["Mars","Venus","Jupiter"],"answer":"Mars"}
+{"id":"rust","prompt":"Which language is used to write Rust programs?","choices":["Rust","Python","HTML"],"answer":"Rust"}
+{"id":"cpu","prompt":"What does CPU stand for?","choices":["Central Processing Unit","Computer Personal Unit","Central Print Unit"],"answer":"Central Processing Unit"}
+{"id":"plants","prompt":"Which gas do plants absorb from the air?","choices":["Carbon dioxide","Oxygen","Nitrogen"],"answer":"Carbon dioxide"}
+{"id":"ocean","prompt":"What is the largest ocean on Earth?","choices":["Pacific Ocean","Atlantic Ocean","Indian Ocean"],"answer":"Pacific Ocean"}
+{"id":"leap","prompt":"How many days are in a leap year?","choices":["366","365","364"],"answer":"366"}
+{"id":"opposite","prompt":"What is the opposite of hot?","choices":["Cold","Warm","Dry"],"answer":"Cold"}

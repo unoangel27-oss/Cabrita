@@ -23,6 +23,26 @@ use crate::tokenizer::Tokenizer;
 
 pub const PAGE_SIZE: usize = 4096;
 
+#[cfg(unix)]
+pub(crate) const MADV_WILLNEED: i32 = libc::MADV_WILLNEED;
+#[cfg(unix)]
+pub(crate) const MADV_DONTNEED: i32 = libc::MADV_DONTNEED;
+#[cfg(not(unix))]
+pub(crate) const MADV_WILLNEED: i32 = 3;
+#[cfg(not(unix))]
+pub(crate) const MADV_DONTNEED: i32 = 4;
+
+/// `madvise` portátil: en Windows es un no-op; la carga se hace tocando páginas.
+#[cfg(unix)]
+pub(crate) unsafe fn madvise_range(addr: *mut std::ffi::c_void, len: usize, advice: i32) -> i32 {
+    libc::madvise(addr as *mut libc::c_void, len, advice)
+}
+
+#[cfg(not(unix))]
+pub(crate) unsafe fn madvise_range(_addr: *mut std::ffi::c_void, _len: usize, _advice: i32) -> i32 {
+    0
+}
+
 #[derive(Debug, Clone)]
 pub struct OlmoeConfig {
     pub hidden: usize,
@@ -529,7 +549,7 @@ impl OlmoeModel {
 
     /// Despliega o suelta las páginas de todos los subparámetros (expertos)
     /// de una capa. Devuelve los bytes afectados.
-    fn madvise_layer_experts(&self, layer: usize, advice: libc::c_int) -> u64 {
+    fn madvise_layer_experts(&self, layer: usize, advice: i32) -> u64 {
         let page = PAGE_SIZE as usize;
         let mut touched = 0u64;
         for (start, len) in self.expert_ranges(layer) {
@@ -538,8 +558,8 @@ impl OlmoeModel {
             if end <= aligned {
                 continue;
             }
-            let ptr = unsafe { self.mmap.as_ptr().add(aligned) as *mut libc::c_void };
-            let rc = unsafe { libc::madvise(ptr, end - aligned, advice) };
+            let ptr = unsafe { self.mmap.as_ptr().add(aligned) as *mut std::ffi::c_void };
+            let rc = unsafe { madvise_range(ptr, end - aligned, advice) };
             if rc == 0 {
                 touched += (end - aligned) as u64;
             }
@@ -586,8 +606,8 @@ impl OlmoeModel {
     fn apply_transition(&self, tr: crate::operators::TicsTransition) {
         let layer = tr.layer;
         let advice = match tr.to {
-            crate::operators::DeploymentState::Deployed => libc::MADV_WILLNEED,
-            crate::operators::DeploymentState::Stopped => libc::MADV_DONTNEED,
+            crate::operators::DeploymentState::Deployed => MADV_WILLNEED,
+            crate::operators::DeploymentState::Stopped => MADV_DONTNEED,
             crate::operators::DeploymentState::Holding => 0,
         };
         let bytes = if advice != 0 {

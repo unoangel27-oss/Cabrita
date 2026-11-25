@@ -1,0 +1,11 @@
+A mixture of experts model replaces a single large feed-forward network with
+several smaller expert networks and a router. For each token, the router scores
+the experts and sends the token to the few with the highest scores. The outputs
+are combined with weights, so the model can use different parts of its capacity
+for different inputs. This design increases the number of parameters while
+keeping the computation per token close to that of a smaller dense model. The
+main challenges are load balancing, communication between devices, and making
+sure that every expert receives enough training signal. A good router is
+stable, sparse, and cheap to evaluate. During inference, only the selected
+experts need to be loaded, which can reduce memory use when the model is split
+into routes or shards.

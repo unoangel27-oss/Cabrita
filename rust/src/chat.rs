@@ -224,7 +224,7 @@ impl ChatSession {
         &mut self,
         user: &str,
         opts: &GenOptions,
-        mut on_token: F,
+        on_token: F,
     ) -> Result<(String, TurnMetrics)> {
         self.messages.push(ChatMessage {
             role: Role::User,
@@ -235,6 +235,29 @@ impl ChatSession {
                 .tokenizer
                 .build_prompt(self.system.as_deref(), &self.messages, true);
 
+        self.generate(prompt, opts, on_token)
+    }
+
+    /// Responde a una lista completa de mensajes (API compatible OpenAI).
+    pub fn respond_chat<F: FnMut(&str)>(
+        &mut self,
+        messages: &[ChatMessage],
+        opts: &GenOptions,
+        on_token: F,
+    ) -> Result<(String, TurnMetrics)> {
+        self.cache.reset();
+        self.tokens.clear();
+        self.messages = messages.to_vec();
+        let prompt = self.model.tokenizer.build_prompt(None, messages, true);
+        self.generate(prompt, opts, on_token)
+    }
+
+    fn generate<F: FnMut(&str)>(
+        &mut self,
+        prompt: Vec<u32>,
+        opts: &GenOptions,
+        mut on_token: F,
+    ) -> Result<(String, TurnMetrics)> {
         if prompt.len() >= self.cache.capacity() {
             return Err(Error::new(format!(
                 "el prompt ocupa {} tokens y el contexto es {}; usa --ctx o acorta la conversación",

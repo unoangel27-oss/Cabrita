@@ -20,6 +20,8 @@ libc = "0.2"
 wgpu = "0.19"
 pollster = "0.3"
 bytemuck = "1"
+rustls = { version = "0.23", default-features = false, features = ["std", "ring", "tls12"] }
+rustls-pemfile = "2"
 
 [dev-dependencies]
 tempfile = "3"

@@ -13,7 +13,9 @@ use serde::Serialize;
 
 use crate::error::{Error, Result};
 use crate::format::Route;
-use crate::model::{rss_bytes, OlmoeModel, TensorInfo, PAGE_SIZE};
+use crate::model::{
+    madvise_range, rss_bytes, OlmoeModel, TensorInfo, MADV_DONTNEED, MADV_WILLNEED, PAGE_SIZE,
+};
 use crate::router::{Activation, WorldTaxonomy};
 
 #[derive(Debug, Clone, Serialize)]
@@ -345,10 +347,10 @@ impl OlmoeModel {
             let end = addr + r.len as usize;
             let aligned = addr & !(PAGE_SIZE - 1);
             unsafe {
-                libc::madvise(
-                    aligned as *mut libc::c_void,
+                madvise_range(
+                    aligned as *mut std::ffi::c_void,
                     end - aligned,
-                    libc::MADV_WILLNEED,
+                    MADV_WILLNEED,
                 );
             }
             let mut p = aligned;
@@ -382,10 +384,10 @@ impl OlmoeModel {
             let end = addr + r.len as usize;
             let aligned = addr & !(PAGE_SIZE - 1);
             unsafe {
-                libc::madvise(
-                    aligned as *mut libc::c_void,
+                madvise_range(
+                    aligned as *mut std::ffi::c_void,
                     end - aligned,
-                    libc::MADV_DONTNEED,
+                    MADV_DONTNEED,
                 );
             }
         }

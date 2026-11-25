@@ -6,12 +6,15 @@ use std::time::{Duration, Instant};
 use clap::{Args, Parser, Subcommand};
 
 use cabrita::chat::{ChatSession, GenOptions, TurnMetrics};
+use cabrita::eval::{perplexity, qa, QaItem};
 use cabrita::model::{rss_bytes, OlmoeModel};
 use cabrita::operators::{read_log, OperatorConfig, OperatorEvent, SessionLog, TicsTracker};
 use cabrita::router::{evaluate_holdout, Activation, ActivationPolicy, TinyRouter, WorldTaxonomy};
 use cabrita::routes::{build_plan, LoadStats};
+use cabrita::server::{serve, ServeOptions};
 use cabrita::{
-    ensure_subs, extract_subs, format_summary, inspect_report, verify_report, verify_subs, UkjFile,
+    backup_worlds, ensure_subs, extract_subs, format_summary, inspect_report, restore_worlds,
+    retrain_worlds, verify_report, verify_subs, UkjFile,
 };
 
 #[derive(Parser)]
@@ -39,6 +42,12 @@ enum Command {
     Bench(BenchArgs),
     /// Activa mundos, construye el plan de rutas y mide la carga perezosa
     Route(RouteArgs),
+    /// Respaldos, restauración con rollback y reentrenamiento de mundos
+    World(WorldArgs),
+    /// Perplejidad y QA corto para benchmarks reproducibles
+    Eval(EvalArgs),
+    /// Servidor HTTP compatible OpenAI + GUI embebida
+    Serve(ServeArgs),
     /// Operadores de Fase 0: tics, stop-subparameter y continue parameter
     Tics(TicsArgs),
     /// Diagnóstico del backend Vulkan
@@ -254,6 +263,124 @@ struct RouteArgs {
     max_worlds: usize,
     #[arg(long)]
     json: bool,
+}
+
+#[derive(Args)]
+struct WorldArgs {
+    #[command(subcommand)]
+    command: WorldCommand,
+}
+
+#[derive(Subcommand)]
+enum WorldCommand {
+    /// Copia la taxonomía a un backup con manifiesto SHA-256
+    Backup {
+        /// Taxonomía de mundos
+        #[arg(long, default_value = "worlds/olmoe.json")]
+        worlds: PathBuf,
+        /// Directorio de destino (por defecto, <worlds>/backups)
+        #[arg(long)]
+        out: Option<PathBuf>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Restaura un backup; si falla, revierte al checkpoint anterior
+    Restore {
+        /// Taxonomía de destino
+        #[arg(long, default_value = "worlds/olmoe.json")]
+        worlds: PathBuf,
+        /// Backup con manifiesto
+        #[arg(long)]
+        backup: PathBuf,
+        /// Directorio de checkpoints (por defecto, <worlds>/checkpoints)
+        #[arg(long)]
+        checkpoint_dir: Option<PathBuf>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Reentrena el router lineal y escribe su artefacto
+    Retrain {
+        /// Taxonomía de mundos
+        #[arg(long, default_value = "worlds/olmoe.json")]
+        worlds: PathBuf,
+        /// Salida del router (por defecto, <worlds>.router.json)
+        #[arg(long)]
+        out: Option<PathBuf>,
+        /// Evalúa con ejemplos reservados
+        #[arg(long)]
+        eval: bool,
+        /// Uno de cada N ejemplos de cada mundo queda para evaluación
+        #[arg(long, default_value_t = 4)]
+        holdout_every: usize,
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+#[derive(Args)]
+struct ServeArgs {
+    /// Modelo .ukj
+    file: PathBuf,
+    /// Dirección local de escucha
+    #[arg(long, default_value = "127.0.0.1:8080")]
+    addr: String,
+    #[arg(long, default_value_t = 1024)]
+    ctx: usize,
+    /// Taxonomía de mundos para la GUI
+    #[arg(long)]
+    worlds: Option<PathBuf>,
+    /// Exige Authorization: Bearer <clave> en /v1/*
+    #[arg(long)]
+    api_key: Option<String>,
+    /// Certificado PEM para HTTPS
+    #[arg(long)]
+    tls_cert: Option<PathBuf>,
+    /// Clave privada PEM para HTTPS
+    #[arg(long)]
+    tls_key: Option<PathBuf>,
+    /// Omite la verificación SHA-256 al abrir
+    #[arg(long)]
+    no_verify_payload: bool,
+}
+
+#[derive(Args)]
+struct EvalArgs {
+    #[command(subcommand)]
+    command: EvalCommand,
+}
+
+#[derive(Subcommand)]
+enum EvalCommand {
+    /// Perplejidad de un texto con el modelo
+    Perplexity {
+        /// Modelo .ukj
+        file: PathBuf,
+        /// Texto de evaluación en UTF-8
+        #[arg(long)]
+        text: PathBuf,
+        #[arg(long, default_value_t = 512)]
+        ctx: usize,
+        /// Omite la verificación SHA-256 al abrir
+        #[arg(long)]
+        no_verify_payload: bool,
+        #[arg(long)]
+        json: bool,
+    },
+    /// QA corto de opción múltiple (un JSON por línea)
+    Qa {
+        /// Modelo .ukj
+        file: PathBuf,
+        /// JSONL con prompt, choices y answer
+        #[arg(long)]
+        data: PathBuf,
+        #[arg(long, default_value_t = 512)]
+        ctx: usize,
+        /// Omite la verificación SHA-256 al abrir
+        #[arg(long)]
+        no_verify_payload: bool,
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -1330,6 +1457,217 @@ fn cmd_vulkan(args: VulkanArgs) -> ExitCode {
     }
 }
 
+fn cmd_serve(args: ServeArgs) -> ExitCode {
+    let opts = ServeOptions {
+        model: args.file,
+        addr: args.addr,
+        ctx: args.ctx,
+        worlds: args.worlds,
+        api_key: args.api_key,
+        verify_payload: !args.no_verify_payload,
+        tls_cert: args.tls_cert,
+        tls_key: args.tls_key,
+    };
+    match serve(opts) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(e) => {
+            eprintln!("error: {e}");
+            ExitCode::from(2)
+        }
+    }
+}
+
+fn cmd_eval(args: EvalArgs) -> ExitCode {
+    match args.command {
+        EvalCommand::Perplexity {
+            file,
+            text,
+            ctx,
+            no_verify_payload,
+            json,
+        } => {
+            let verify = !no_verify_payload;
+            let mut model = match OlmoeModel::open_with_verify(&file, verify, verify) {
+                Ok(m) => m,
+                Err(e) => {
+                    eprintln!("error: {e}");
+                    return ExitCode::from(2);
+                }
+            };
+            let corpus = match std::fs::read_to_string(&text) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("error: no se puede leer {}: {e}", text.display());
+                    return ExitCode::from(2);
+                }
+            };
+            match perplexity(&mut model, &corpus, ctx) {
+                Ok(report) => {
+                    if json {
+                        print_json(&serde_json::to_value(&report).unwrap_or_default());
+                    } else {
+                        println!(
+                            "perplejidad: {:.4} · {} tokens · densidad {} · {}",
+                            report.perplexity, report.tokens, report.density, report.model
+                        );
+                    }
+                    ExitCode::SUCCESS
+                }
+                Err(e) => {
+                    eprintln!("error: {e}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        EvalCommand::Qa {
+            file,
+            data,
+            ctx,
+            no_verify_payload,
+            json,
+        } => {
+            let verify = !no_verify_payload;
+            let mut model = match OlmoeModel::open_with_verify(&file, verify, verify) {
+                Ok(m) => m,
+                Err(e) => {
+                    eprintln!("error: {e}");
+                    return ExitCode::from(2);
+                }
+            };
+            let raw = match std::fs::read_to_string(&data) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("error: no se puede leer {}: {e}", data.display());
+                    return ExitCode::from(2);
+                }
+            };
+            let items: std::result::Result<Vec<QaItem>, _> = raw
+                .lines()
+                .filter(|l| !l.trim().is_empty())
+                .map(serde_json::from_str)
+                .collect();
+            let items = match items {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("error: JSONL inválido en {}: {e}", data.display());
+                    return ExitCode::from(2);
+                }
+            };
+            match qa(&mut model, &items, ctx) {
+                Ok(report) => {
+                    if json {
+                        print_json(&serde_json::to_value(&report).unwrap_or_default());
+                    } else {
+                        println!(
+                            "QA: {}/{} ({:.1}%) · densidad {} · {}",
+                            report.correct,
+                            report.total,
+                            report.accuracy * 100.0,
+                            report.density,
+                            report.model
+                        );
+                    }
+                    ExitCode::SUCCESS
+                }
+                Err(e) => {
+                    eprintln!("error: {e}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+    }
+}
+
+fn cmd_world(args: WorldArgs) -> ExitCode {
+    match args.command {
+        WorldCommand::Backup { worlds, out, json } => {
+            match backup_worlds(&worlds, out.as_deref()) {
+                Ok(info) => {
+                    if json {
+                        print_json(&serde_json::to_value(&info).unwrap_or_default());
+                    } else {
+                        println!(
+                            "backup · {} · {} mundos · {} ejemplos · {}",
+                            info.backup,
+                            info.worlds,
+                            info.examples,
+                            format_bytes(info.bytes as f64)
+                        );
+                        println!("manifiesto: {}", info.manifest);
+                    }
+                    ExitCode::SUCCESS
+                }
+                Err(e) => {
+                    eprintln!("error: {e}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        WorldCommand::Restore {
+            worlds,
+            backup,
+            checkpoint_dir,
+            json,
+        } => match restore_worlds(&worlds, &backup, checkpoint_dir.as_deref()) {
+            Ok(info) => {
+                if json {
+                    print_json(&serde_json::to_value(&info).unwrap_or_default());
+                } else {
+                    println!(
+                        "restaurado · {} · {} mundos · {} ejemplos",
+                        info.target, info.worlds, info.examples
+                    );
+                    if let Some(cp) = &info.checkpoint {
+                        println!("checkpoint: {cp}");
+                    }
+                }
+                ExitCode::SUCCESS
+            }
+            Err(e) => {
+                eprintln!("error: {e}");
+                ExitCode::from(2)
+            }
+        },
+        WorldCommand::Retrain {
+            worlds,
+            out,
+            eval,
+            holdout_every,
+            json,
+        } => match retrain_worlds(&worlds, out.as_deref(), eval, holdout_every) {
+            Ok(info) => {
+                if json {
+                    print_json(&serde_json::to_value(&info).unwrap_or_default());
+                } else {
+                    println!(
+                        "router · {} · {} mundos · {} ejemplos · {}",
+                        info.output,
+                        info.worlds,
+                        info.examples,
+                        format_bytes(info.bytes as f64)
+                    );
+                    if let Some(acc) = info.accuracy {
+                        println!(
+                            "held-out: {:.1}% ({} train / {} test)",
+                            acc * 100.0,
+                            info.train_examples.unwrap_or(0),
+                            info.test_examples.unwrap_or(0)
+                        );
+                    }
+                    if let Some(cp) = &info.checkpoint {
+                        println!("checkpoint: {cp}");
+                    }
+                }
+                ExitCode::SUCCESS
+            }
+            Err(e) => {
+                eprintln!("error: {e}");
+                ExitCode::from(2)
+            }
+        },
+    }
+}
+
 fn cmd_route(args: RouteArgs) -> ExitCode {
     let taxonomy = match WorldTaxonomy::load(&args.worlds) {
         Ok(t) => t,
@@ -1544,6 +1882,9 @@ fn main() -> ExitCode {
         Command::Chat(args) => cmd_chat(args),
         Command::Bench(args) => cmd_bench(args),
         Command::Route(args) => cmd_route(args),
+        Command::World(args) => cmd_world(args),
+        Command::Eval(args) => cmd_eval(args),
+        Command::Serve(args) => cmd_serve(args),
         Command::Tics(args) => cmd_tics(args),
         Command::Vulkan(args) => cmd_vulkan(args),
     }

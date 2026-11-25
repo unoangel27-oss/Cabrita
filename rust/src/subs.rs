@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
+use crate::checkpoint::save_checkpoint;
 use crate::error::{Error, Result};
 use crate::format::{ALIGN, PREAMBLE_LEN, SUBS_MAGIC, SUBS_VERSION, TRAILER_LEN};
 use crate::reader::{subs_path_for, SubsEntry, SubsFile, SubsHeader, SubsSource, UkjFile};
@@ -235,14 +236,30 @@ pub fn extract_subs(
         let _ = fs::remove_file(&tmp);
         return Err(e);
     }
+    let checkpoint_dir = target
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."))
+        .join("checkpoints");
+    let checkpoint = save_checkpoint(&target, &checkpoint_dir, "subs")?;
     fs::rename(&tmp, &target)?;
 
-    let check = verify_subs(ukj_path, Some(&target), subs_root)?;
-    if !check.ok {
-        return Err(Error::new(format!(
-            "el .subs recién creado no valida: {}",
-            check.message
-        )));
+    let check = verify_subs(ukj_path, Some(&target), subs_root);
+    match check {
+        Ok(status) if status.ok => {}
+        Ok(status) => {
+            checkpoint.rollback()?;
+            return Err(Error::new(format!(
+                "el .subs recién creado no valida: {}; se revirtió al checkpoint",
+                status.message
+            )));
+        }
+        Err(e) => {
+            checkpoint.rollback()?;
+            return Err(Error::new(format!(
+                "no se pudo validar el .subs recién creado: {e}; se revirtió al checkpoint"
+            )));
+        }
     }
     Ok(target)
 }

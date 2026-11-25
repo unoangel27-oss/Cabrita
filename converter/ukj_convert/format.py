@@ -40,6 +40,7 @@ SUBS_MAGIC = b"SUBS"
 SUBS_VERSION = 1
 
 ALLOWED_DENSITIES = [f"p{i}_p" for i in range(1, 9)]
+EXPERIMENTAL_DENSITIES = [f"p{i}_p" for i in range(9, 13)]
 DENSITY_ALIASES = {"p_p": "p1_p", "p": "p1_p"}
 
 
@@ -57,10 +58,11 @@ def parse_density(code: str) -> int:
         return 1
     c = code.strip().lower()
     c = DENSITY_ALIASES.get(c, c)
-    m = re.fullmatch(r"p([1-8])_p", c)
+    m = re.fullmatch(r"p([1-9]|1[0-2])_p", c)
     if not m:
         raise ValueError(
-            f"densidad '{code}' inválida; usa p1_p…p8_p (p_p equivale a p1_p)"
+            f"densidad '{code}' inválida; usa p1_p…p8_p "
+            "(p_p equivale a p1_p; p9_p…p12_p son experimentales)"
         )
     return int(m.group(1))
 

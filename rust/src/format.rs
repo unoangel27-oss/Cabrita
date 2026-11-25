@@ -152,18 +152,17 @@ pub fn parse_density(code: &str) -> Result<u32> {
                 "densidad '{code}' inválida; usa p1_p…p8_p (p_p equivale a p1_p)"
             ))
         })?;
-    if rest.len() == 1 {
-        match rest.as_bytes()[0] {
-            b'1'..=b'8' => Ok((rest.as_bytes()[0] - b'0') as u32),
-            _ => Err(Error::new(format!(
-                "densidad '{code}' inválida; usa p1_p…p8_p"
-            ))),
-        }
-    } else {
-        Err(Error::new(format!(
-            "densidad '{code}' inválida; usa p1_p…p8_p"
-        )))
+    let n: u32 = rest.parse().map_err(|_| {
+        Error::new(format!(
+            "densidad '{code}' inválida; usa p1_p…p8_p (p_p equivale a p1_p)"
+        ))
+    })?;
+    if !(1..=12).contains(&n) || n.to_string() != rest {
+        return Err(Error::new(format!(
+            "densidad '{code}' inválida; usa p1_p…p8_p; p9_p…p12_p son solo para el experimento >p8_p"
+        )));
     }
+    Ok(n)
 }
 
 pub fn validate_header(header: &Header, payload_len: u64) -> Result<()> {

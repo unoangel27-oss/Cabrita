@@ -44,9 +44,11 @@ class TestDensity(unittest.TestCase):
         self.assertEqual(parse_density("p_p"), 1)
         self.assertEqual(parse_density("p1_p"), 1)
         self.assertEqual(parse_density("P5_P"), 5)
+        self.assertEqual(parse_density("p9_p"), 9)
+        self.assertEqual(parse_density("p12_p"), 12)
 
     def test_invalid(self) -> None:
-        for code in ("p0_p", "p9_p", "q4_k", ""):
+        for code in ("p0_p", "p13_p", "q4_k", ""):
             with self.assertRaises(ValueError):
                 parse_density(code)
 

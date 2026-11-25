@@ -96,7 +96,7 @@ CPU is the default backend; Vulkan is opt-in.
 - `worlds/olmoe.json`: 8-world taxonomy with examples and per-layer expert
   measurements.
 - `docs/formato-ukj-v1.md`: binary layout, checksums, CLI and results.
-- `spec/`, `plan/`: functional specification and phase plan.
+- `spec/`: functional specification.
 - `rust/tests/fixtures/`: tiny fixtures used by the test suite.
 
 ## Tests

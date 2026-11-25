@@ -101,5 +101,3 @@ nav:
       - Cabrita Runtime: spec/runtime.md
       - Decisions: spec/decisiones.md
       - Pending: spec/pendientes.md
-  - Plan:
-      - Phases: plan/fases.md

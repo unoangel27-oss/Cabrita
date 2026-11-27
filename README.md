@@ -171,7 +171,7 @@ cd converter && PYTHONPATH=. python3 -m unittest discover -s tests -t .
 cd ../rust && cargo test
 ```
 
-Current result: **18 Python tests** and **42 Rust tests** (26 unit + 16
+Current result: **22 Python tests** and **47 Rust tests** (29 unit + 18
 integration) green. The Rust engine matches an independent NumPy OLMoE
 reference: `max_abs_diff=2.7e-5` on the logits. The Vulkan self-test compares
 F32/F16/Q2_K/Q3_K/Q6_K against CPU with a maximum relative difference of
